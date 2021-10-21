@@ -6,7 +6,7 @@ RUN mkdir /common /code1 /code2 /code3
 RUN pip install --upgrade pip
 
 RUN apt-get update -y
-RUN apt-get install -y tar git curl nano wget dialog net-tools build-essential
+RUN apt-get install -y git
 
 COPY rabbitmq-install.sh .
 RUN chmod +x rabbitmq-install.sh

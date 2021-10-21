@@ -4,6 +4,7 @@ services:
 
   rabbitmq:
     container_name: rabbitmq
+    hostname: rabbit
     image: docker.io/bitnami/rabbitmq:3.9
     ports:
       - 4369:4369
@@ -14,8 +15,9 @@ services:
       - 15672:15672
     environment:
       - RABBITMQ_SECURE_PASSWORD=yes
-      - RABBITMQ_USERNAME=guest
-      - RABBITMQ_PASSWORD=guest
+      - RABBITMQ_VHOST=rabbit
+      - RABBITMQ_USERNAME=akshay
+      - RABBITMQ_PASSWORD=akshay@mq
     volumes:
       - 'rabbitmq_data:/bitnami'
 
@@ -31,7 +33,15 @@ services:
       dockerfile: ./Dockerfile
     ports:
       - 8000:8000
-    command: python3 /microservice-one/project_dir/manage.py migrate &; python3 /microservice-one/project_dir/manage.py runserver 0.0.0.0:8000 &; python3 /microservice-one/project_dir/consumer.py
+    env_file: .env
+    command:
+      - /bin/bash
+      - -c
+      - |
+        cd /microservice-one/project_dir
+        python manage.py migrate
+        python manage.py runserver 0.0.0.0:8000 &
+        python consumer.py
     links:
       - rabbitmq
 
@@ -47,7 +57,14 @@ services:
       dockerfile: ./Dockerfile
     ports:
       - 8001:8001
-    command: python3 /microservice-two/project_dir/manage.py migrate &; python3 /microservice-two/project_dir/manage.py runserver 0.0.0.0:8001 &; python3 /microservice-two/project_dir/consumer.py
+    command:
+      - /bin/bash
+      - -c
+      - |
+        cd /microservice-two/project_dir
+        python manage.py migrate
+        python manage.py runserver 0.0.0.0:8001 &
+        python consumer.py
     links:
       - rabbitmq
 
@@ -63,7 +80,14 @@ services:
       dockerfile: ./Dockerfile
     ports:
       - 8002:8002
-    command: python3 /microservice-three/project_dir/manage.py migrate &; python3 /microservice-three/project_dir/manage.py runserver 0.0.0.0:8002 &; python3 /microservice-three/project_dir/consumer.py
+    command:
+      - /bin/bash
+      - -c
+      - |
+        cd /microservice-three/project_dir
+        python manage.py migrate
+        python manage.py runserver 0.0.0.0:8002 &
+        python consumer.py
     links:
       - rabbitmq
 
