@@ -1,0 +1,72 @@
+version: '3'
+
+services:
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: docker.io/bitnami/rabbitmq:3.9
+    ports:
+      - 4369:4369
+      - 5551:5551
+      - 5552:5552
+      - 5672:5672
+      - 25672:25672
+      - 15672:15672
+    environment:
+      - RABBITMQ_SECURE_PASSWORD=yes
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+    volumes:
+      - 'rabbitmq_data:/bitnami'
+
+  ms1:
+    container_name: ms1
+    hostname: ms1
+    restart: always
+    build:
+      context: .
+      args:
+        - REPO_NAME=microservice-one
+        - PORT=8000
+      dockerfile: ./Dockerfile
+    ports:
+      - 8000:8000
+    command: python3 /microservice-one/project_dir/manage.py migrate &; python3 /microservice-one/project_dir/manage.py runserver 0.0.0.0:8000 &; python3 /microservice-one/project_dir/consumer.py
+    links:
+      - rabbitmq
+
+  ms2:
+    container_name: ms2
+    hostname: ms2
+    restart: always
+    build:
+      context: .
+      args:
+        - REPO_NAME=microservice-two
+        - PORT=8001
+      dockerfile: ./Dockerfile
+    ports:
+      - 8001:8001
+    command: python3 /microservice-two/project_dir/manage.py migrate &; python3 /microservice-two/project_dir/manage.py runserver 0.0.0.0:8001 &; python3 /microservice-two/project_dir/consumer.py
+    links:
+      - rabbitmq
+
+  ms3:
+    container_name: ms3
+    hostname: ms3
+    restart: always
+    build:
+      context: .
+      args:
+        - REPO_NAME=microservice-three
+        - PORT=8002
+      dockerfile: ./Dockerfile
+    ports:
+      - 8002:8002
+    command: python3 /microservice-three/project_dir/manage.py migrate &; python3 /microservice-three/project_dir/manage.py runserver 0.0.0.0:8002 &; python3 /microservice-three/project_dir/consumer.py
+    links:
+      - rabbitmq
+
+volumes:
+  rabbitmq_data:
+    driver: local

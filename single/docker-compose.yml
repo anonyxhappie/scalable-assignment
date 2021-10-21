@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  one:
+    container_name: one
+    restart: always
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 8000:8000
+      - 8001:8001
+      - 8002:8002
